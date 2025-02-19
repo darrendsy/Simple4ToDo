@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 
 interface Todo {
@@ -14,10 +14,19 @@ function App() {
     const savedTodos = localStorage.getItem('todos')
     return savedTodos ? JSON.parse(savedTodos) : []
   })
+
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(todos))
+  }, [todos])
+
   const [input, setInput] = useState('')
   const [draggedTodoId, setDraggedTodoId] = useState<number | null>(null)
   const [editingTodoId, setEditingTodoId] = useState<number | null>(null)
   const [editingText, setEditingText] = useState('')
+  const [memo, setMemo] = useState(() => {
+    const savedMemo = localStorage.getItem('memo')
+    return savedMemo || ''
+  })
 
   const handleDoubleClick = (todo: Todo) => {
     setEditingTodoId(todo.id)
@@ -130,10 +139,73 @@ function App() {
     setTodos(todos.filter(todo => todo.id !== id))
   }
 
+  const handleClearQuadrant = (important: boolean, urgent: boolean) => {
+    setTodos(todos.filter(todo => 
+      todo.important !== important || todo.urgent !== urgent
+    ))
+  }
+
   return (
     <div className="todo-container">
       <h1>四象限待办事项清单</h1>
-      <form onSubmit={handleAddTodo} className="todo-form">
+
+      <div className="memo-container">
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+          <textarea
+            value={memo}
+            onChange={(e) => {
+              const newMemo = e.target.value
+              setMemo(newMemo)
+              localStorage.setItem('memo', newMemo)
+            }}
+            placeholder="在这里写下你的备忘..."
+            className="memo-input"
+          />
+          <button
+            onClick={() => {
+              const lines = memo.split('\n')
+              lines.forEach(line => {
+                const trimmedLine = line.trim()
+                if (trimmedLine) {
+                  const numberMatch = trimmedLine.match(/^[1-4]\s*/)
+                  if (numberMatch) {
+                    const number = parseInt(numberMatch[0])
+                    const todoText = trimmedLine.substring(numberMatch[0].length)
+                    let important = false
+                    let urgent = false
+                  
+                    switch(number) {
+                      case 1:
+                        important = true
+                        urgent = true
+                        break
+                      case 2:
+                        important = true
+                        break
+                      case 3:
+                        urgent = true
+                        break
+                    }
+                  
+                    setTodos(prevTodos => [...prevTodos, {
+                      id: Date.now() + Math.random(),
+                      text: todoText,
+                      completed: false,
+                      important: important,
+                      urgent: urgent
+                    }])
+                  }
+                }
+              })
+            }}
+            className="add-button"
+            style={{ alignSelf: 'flex-start' }}
+          >
+            导入任务
+          </button>
+        </div>
+      </div>
+      <form onSubmit={handleAddTodo}>
         <input
           type="text"
           value={input}
@@ -142,6 +214,14 @@ function App() {
           className="todo-input"
         />
         <button type="submit" className="add-button">添加</button>
+        <button
+          type="button"
+          onClick={() => setTodos(todos.filter(todo => !todo.completed))}
+          className="add-button"
+          style={{ marginLeft: '0.5rem' }}
+        >
+          清除已完成
+        </button>
       </form>
       <div className="quadrant-container">
         <div
@@ -150,7 +230,16 @@ function App() {
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, true, true)}
         >
-          <h2>重要且紧急</h2>
+          <div className="quadrant-header">
+            <h2>重要且紧急</h2>
+            <button
+              onClick={() => handleClearQuadrant(true, true)}
+              className="clear-button"
+              title="清除此象限所有任务"
+            >
+              ×
+            </button>
+          </div>
           <ul className="todo-list">
             {todos.filter(todo => todo.important && todo.urgent).map(todo => (
               <li
@@ -195,7 +284,16 @@ function App() {
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, true, false)}
         >
-          <h2>重要不紧急</h2>
+          <div className="quadrant-header">
+            <h2>重要不紧急</h2>
+            <button
+              onClick={() => handleClearQuadrant(true, false)}
+              className="clear-button"
+              title="清除此象限所有任务"
+            >
+              ×
+            </button>
+          </div>
           <ul className="todo-list">
             {todos.filter(todo => todo.important && !todo.urgent).map(todo => (
               <li
@@ -240,7 +338,16 @@ function App() {
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, false, true)}
         >
-          <h2>紧急不重要</h2>
+          <div className="quadrant-header">
+            <h2>紧急不重要</h2>
+            <button
+              onClick={() => handleClearQuadrant(false, true)}
+              className="clear-button"
+              title="清除此象限所有任务"
+            >
+              ×
+            </button>
+          </div>
           <ul className="todo-list">
             {todos.filter(todo => !todo.important && todo.urgent).map(todo => (
               <li
@@ -285,7 +392,16 @@ function App() {
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, false, false)}
         >
-          <h2>不重要不紧急</h2>
+          <div className="quadrant-header">
+            <h2>不重要不紧急</h2>
+            <button
+              onClick={() => handleClearQuadrant(false, false)}
+              className="clear-button"
+              title="清除此象限所有任务"
+            >
+              ×
+            </button>
+          </div>
           <ul className="todo-list">
             {todos.filter(todo => !todo.important && !todo.urgent).map(todo => (
               <li

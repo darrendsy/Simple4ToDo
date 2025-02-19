@@ -55,11 +55,44 @@
   cursor: grabbing;
 }
 
-.quadrant h2 {
+.quadrant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.quadrant-header h2 {
   color: #333;
   font-size: 1rem;
-  margin-bottom: 1rem;
-  text-align: center;
+  margin: 0;
+}
+
+.clear-button {
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  color: white;
+  background-color: #ff4d4d;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s, opacity 0.3s;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.quadrant-header:hover .clear-button {
+  opacity: 1;
+}
+
+.clear-button:hover {
+  background-color: #ff3333;
 }
 
 .todo-container h1 {
@@ -167,4 +200,28 @@
 
 .delete-button:hover {
   background-color: #ff3333;
+}
+
+.memo-container {
+  margin: 2rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.memo-input {
+  width: 100%;
+  min-height: 100px;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #646cff;
+  border-radius: 4px;
+  background-color: white;
+  resize: vertical;
+}
+
+.memo-input:focus {
+  outline: none;
+  border-color: #535bf2;
+  box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.2);
 }
